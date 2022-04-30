@@ -23,7 +23,7 @@ jobs:
       run: |
         git config --global user.name 'Machine User'
         git config --global user.email 'ghmachine@kazanexpress.ru'
-        git remote set-url origin https://x-access-token:${{ secrets.GH_MACHINE_RW_TOKEN }}@github.com/${{ github.repository }}
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
         cz bump --changelog
         git push origin HEAD:master && git push --tags
