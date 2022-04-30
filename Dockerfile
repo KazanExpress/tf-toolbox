@@ -26,6 +26,7 @@ WORKDIR /app
 COPY --from=build /app/findroot /app/findroot
 COPY --from=build /app/cleanplan /app/cleanplan
 
-# USER toolbox
+
+ENV PATH="/app:$PATH"
 
 ENTRYPOINT ["/app/cleanplan"]
