@@ -15,6 +15,7 @@ COPY ./ ./
 
 RUN go build github.com/KazanExpress/tf-toolbox/cmd/cleanplan
 RUN go build github.com/KazanExpress/tf-toolbox/cmd/findroot
+RUN go build github.com/KazanExpress/tf-toolbox/cmd/unlock
 
 ##
 ## Deploy
@@ -25,8 +26,9 @@ WORKDIR /app
 
 COPY --from=build /app/findroot /app/findroot
 COPY --from=build /app/cleanplan /app/cleanplan
+COPY --from=build /app/unlock /app/unlock
 
 
 ENV PATH="/app:$PATH"
 
-ENTRYPOINT ["/app/cleanplan"]
+ENTRYPOINT ["/app/unlock"]
