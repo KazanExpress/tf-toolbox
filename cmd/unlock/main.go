@@ -70,6 +70,8 @@ func getConfigs() config {
 func main() {
 	conf := getConfigs()
 
+	fmt.Printf("release locks: %t\n", conf.releaseLocks)
+
 	db := dynamodb.New(dynamodb.Options{
 		BaseEndpoint: aws.String(conf.endpoint),
 		Region:       conf.region,

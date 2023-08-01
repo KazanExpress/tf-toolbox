@@ -15,3 +15,7 @@ docker run --entrypoint=/bin/sh -ti -v $PWD:/mount ghcr.io/kazanexpress/tf-toolb
 
 cat plan.txt | cleanplan > cleanplan.txt
 ```
+
+## unlock
+
+Finds and removes stuck locks in dynamodb.
