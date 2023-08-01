@@ -20,7 +20,7 @@ RUN go build github.com/KazanExpress/tf-toolbox/cmd/unlock
 ##
 ## Deploy
 ##
-FROM alpine:3.10
+FROM alpine:3.13
 
 WORKDIR /app
 
