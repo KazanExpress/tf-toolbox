@@ -3,7 +3,7 @@
 ##
 ## Build
 ##
-FROM golang:1.18-buster AS build
+FROM golang:1.20-buster AS build
 
 WORKDIR /app
 
@@ -12,6 +12,9 @@ COPY go.mod ./
 RUN go mod download
 
 COPY ./ ./
+
+ENV GOOS linux
+ENV GOARCH amd64
 
 RUN go build github.com/KazanExpress/tf-toolbox/cmd/cleanplan
 RUN go build github.com/KazanExpress/tf-toolbox/cmd/findroot
