@@ -3,7 +3,7 @@
 ##
 ## Build
 ##
-FROM golang:1.20-buster AS build
+FROM golang:1.20 AS build
 
 WORKDIR /app
 
@@ -18,7 +18,8 @@ ENV GOARCH amd64
 
 RUN go build github.com/KazanExpress/tf-toolbox/cmd/cleanplan
 RUN go build github.com/KazanExpress/tf-toolbox/cmd/findroot
-RUN go build github.com/KazanExpress/tf-toolbox/cmd/unlock
+
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags "-linkmode 'external' -extldflags '-static'" github.com/KazanExpress/tf-toolbox/cmd/unlock
 
 ##
 ## Deploy

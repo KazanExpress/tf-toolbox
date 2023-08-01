@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
 	// include dot env loader
 	_ "github.com/joho/godotenv/autoload"
@@ -69,10 +70,10 @@ func getConfigs() config {
 func main() {
 	conf := getConfigs()
 
-	db := dynamodb.New(session.Must(session.NewSession()), &aws.Config{
-		Endpoint: aws.String(conf.endpoint),
-		Region:   aws.String(conf.region),
-		Credentials: credentials.NewStaticCredentials(
+	db := dynamodb.New(dynamodb.Options{
+		BaseEndpoint: aws.String(conf.endpoint),
+		Region:       conf.region,
+		Credentials: credentials.NewStaticCredentialsProvider(
 			conf.accessKey,
 			conf.secretKey,
 			"",
@@ -106,10 +107,10 @@ func main() {
 }
 
 // getLocks returns a list of locks from the dynamodb table
-func getLocks(db *dynamodb.DynamoDB, tableName string) ([]lockInfo, error) {
+func getLocks(db *dynamodb.Client, tableName string) ([]lockInfo, error) {
 	// implement getting terraform locks from dynamodb table
 
-	outputs, err := db.Scan(&dynamodb.ScanInput{
+	outputs, err := db.Scan(context.Background(), &dynamodb.ScanInput{
 		TableName:            aws.String(tableName),
 		ProjectionExpression: aws.String("LockID, Info"),
 	})
@@ -122,12 +123,12 @@ func getLocks(db *dynamodb.DynamoDB, tableName string) ([]lockInfo, error) {
 
 	for _, item := range outputs.Items {
 		var lock lockInfo
-		if v, ok := item["Info"]; ok && v.S != nil {
-			err := json.Unmarshal([]byte(*v.S), &lock)
+		if v, ok := item["Info"].(*types.AttributeValueMemberS); ok && v.Value != "" {
+			err := json.Unmarshal([]byte(v.Value), &lock)
 			if err != nil {
 				return nil, fmt.Errorf("json unmarshal: %w", err)
 			}
-			lock.LockID = *item["LockID"].S
+			lock.LockID = item["LockID"].(*types.AttributeValueMemberS).Value
 			locks = append(locks, lock)
 		}
 
@@ -136,24 +137,24 @@ func getLocks(db *dynamodb.DynamoDB, tableName string) ([]lockInfo, error) {
 	return locks, nil
 }
 
-func getLockInfo(db *dynamodb.DynamoDB, tableName, id string) (*lockInfo, error) {
+func getLockInfo(db *dynamodb.Client, tableName, id string) (*lockInfo, error) {
 	getParams := &dynamodb.GetItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			"LockID": {S: aws.String(id)},
+		Key: map[string]types.AttributeValue{
+			"LockID": &types.AttributeValueMemberS{Value: id},
 		},
 		ProjectionExpression: aws.String("LockID, Info"),
 		TableName:            aws.String(tableName),
 		ConsistentRead:       aws.Bool(true),
 	}
 
-	resp, err := db.GetItem(getParams)
+	resp, err := db.GetItem(context.Background(), getParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get item: %w", err)
 	}
 
 	var infoData string
-	if v, ok := resp.Item["Info"]; ok && v.S != nil {
-		infoData = *v.S
+	if v, ok := resp.Item["Info"].(*types.AttributeValueMemberS); ok && v.Value != "" {
+		infoData = v.Value
 	}
 
 	lockInfo := &lockInfo{}
@@ -165,7 +166,7 @@ func getLockInfo(db *dynamodb.DynamoDB, tableName, id string) (*lockInfo, error)
 	return lockInfo, nil
 }
 
-func unlock(db *dynamodb.DynamoDB, tableName, id, path string) error {
+func unlock(db *dynamodb.Client, tableName, id, path string) error {
 
 	lockInfo, err := getLockInfo(db, tableName, path)
 	if err != nil {
@@ -177,12 +178,12 @@ func unlock(db *dynamodb.DynamoDB, tableName, id, path string) error {
 	}
 
 	params := &dynamodb.DeleteItemInput{
-		Key: map[string]*dynamodb.AttributeValue{
-			"LockID": {S: aws.String(path)},
+		Key: map[string]types.AttributeValue{
+			"LockID": &types.AttributeValueMemberS{Value: path},
 		},
 		TableName: aws.String(tableName),
 	}
-	_, err = db.DeleteItem(params)
+	_, err = db.DeleteItem(context.Background(), params)
 
 	if err != nil {
 		return fmt.Errorf("failed to delete item from dynamo db: %w", err)
