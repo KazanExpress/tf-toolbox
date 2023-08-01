@@ -92,7 +92,7 @@ func main() {
 	fmt.Printf("found %d locks\n", len(locks))
 
 	for _, lock := range locks {
-		fmt.Printf("LockID: %s; ID: %s; %s; Time: %s\n", lock.LockID, lock.ID, lock.Operation, lock.Created)
+		fmt.Printf("LockID: %s; ID: %s; %s; Holder: %s; Time: %s\n", lock.LockID, lock.ID, lock.Operation, lock.Who, lock.Created)
 		if conf.releaseLocks {
 			err := unlock(db, conf.tableName, lock.ID, lock.LockID)
 			if err != nil {
