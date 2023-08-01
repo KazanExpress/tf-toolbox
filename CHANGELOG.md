@@ -1,3 +1,9 @@
+## v0.2.1 (2023-08-01)
+
+### Fix
+
+- **unlock**: print lock holder name
+
 ## v0.2.0 (2023-08-01)
 
 ### Fix
