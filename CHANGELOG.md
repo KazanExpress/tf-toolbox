@@ -1,3 +1,9 @@
+## v0.2.4 (2023-08-01)
+
+### Fix
+
+- add debug log about releasing locks
+
 ## v0.2.3 (2023-08-01)
 
 ### Fix
