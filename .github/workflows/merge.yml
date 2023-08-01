@@ -17,6 +17,7 @@ jobs:
 
     - name: lint commit message
       run: |
+        git config --global --add safe.directory /__w/tf-toolbox/tf-toolbox
         cz check -m "$(git log -1 --pretty=%B)"
 
     - name: bump & push
