@@ -1,3 +1,13 @@
+## v0.2.0 (2023-08-01)
+
+### Fix
+
+- Dockerfile to reduce vulnerabilities (#1)
+
+### Feat
+
+- **unlock**: add tf lock cleaner and debuger
+
 ## v0.1.1 (2022-04-30)
 
 ### Fix
